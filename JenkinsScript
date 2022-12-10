@@ -1,0 +1,20 @@
+node {
+    stage("Pull SourceCode from Github")
+    git branch: 'main', url: 'https://github.com/Perfection-0311/DockerImageCreation.git'
+    
+    stage("Build Dockerfile")
+    sh 'docker image build -t $JOB_NAME:V1.$BUILD_ID .'
+    sh 'docker image tag $JOB_NAME:V1.$BUILD_ID darkmatterdocker/$JOB_NAME:V1.$BUILD_ID'
+    sh 'docker image tag $JOB_NAME:V1.$BUILD_ID darkmatterdocker/$JOB_NAME:latest'
+    
+    stage("Push Docker Image to DockerHub")
+    withCredentials([string(credentialsId: 'dockerpassword', variable: 'dockerhubpassword')]) {
+    // some block
+    sh 'docker login -u darkmatterdocker -p ${dockerhubpassword}'
+    sh 'docker image push darkmatterdocker/$JOB_NAME:V1.$BUILD_ID '
+    sh 'docker image push darkmatterdocker/$JOB_NAME:latest '
+    sh 'docker rmi darkmatterdocker/$JOB_NAME:V1.$BUILD_ID darkmatterdocker/$JOB_NAME:latest $JOB_NAME:V1.$BUILD_ID '
+}
+    
+ 
+}
